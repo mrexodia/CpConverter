@@ -29,14 +29,14 @@ namespace CpConverter
     /// </summary>
     public partial class MainForm : Form
     {
-    #region "Private variables"
+        #region "Private variables"
         //filenames to convert
         private string[] _sourceFiles = null;
         //ouput directory
         private string destDir = null;
-    #endregion
+        #endregion
 
-    #region "Constructors"
+        #region "Constructors"
         /// <summary>
         /// Main form constructor
         /// </summary>
@@ -45,10 +45,13 @@ namespace CpConverter
             InitializeComponent();
             //load the encodings into the combos
             loadEncodings();
+            //set drag&drop handlers
+            this.DragEnter += new DragEventHandler(MainForm_DragEnter);
+            this.DragDrop += new DragEventHandler(MainForm_DragDrop);
         }
-    #endregion
+        #endregion
 
-    #region "Event Handlers"
+        #region "Event Handlers"
         /// <summary>
         /// Handle the Exit button click event
         /// </summary>
@@ -71,20 +74,7 @@ namespace CpConverter
             openFile.Filter = "All files (*.*)|*.*";
             openFile.FilterIndex = 0;
             openFile.ShowDialog();
-            //get the filenames
-            _sourceFiles = openFile.FileNames;
-            string filename;
-            foreach(string s in _sourceFiles)
-            {
-                //add the filesnames to the list box
-                //john church 05/10/2008 use directory separator char instead of backslash for linux support
-                filename = s.Substring(s.LastIndexOf(System.IO.Path.DirectorySeparatorChar) + 1);
-                lsSource.Items.Add(filename);
-            }
-            //display the message
-            txtMessages.Text = txtMessages.Text.Insert(0, _sourceFiles.Length + " file(s) selected for conversion" + System.Environment.NewLine);
-            //validate the run button
-            validateForRun();
+            setFiles(openFile.FileNames);
         }
 
         /// <summary>
@@ -116,12 +106,12 @@ namespace CpConverter
 
             switch (Encoding.GetEncoding(destCP).CodePage)
             {
-                case 1200 : cmbBOMType.SelectedIndex = 2; break;
-                case 1201 : cmbBOMType.SelectedIndex = 3; break;
+                case 1200: cmbBOMType.SelectedIndex = 2; break;
+                case 1201: cmbBOMType.SelectedIndex = 3; break;
                 case 12000: cmbBOMType.SelectedIndex = 4; break;
                 case 12001: cmbBOMType.SelectedIndex = 5; break;
                 case 54936: cmbBOMType.SelectedIndex = 9; break;
-                case 65000: cmbBOMType.SelectedIndex =10; break;
+                case 65000: cmbBOMType.SelectedIndex = 10; break;
                 case 65001: cmbBOMType.SelectedIndex = 1; break;
                 default:
                     if (cmbDestEnc.SelectedItem.ToString().IndexOf("EBCDIC") > 0)
@@ -143,9 +133,31 @@ namespace CpConverter
                     break;
             }
         }
-    #endregion
-        
-    #region "Run the conversion"
+
+        /// <summary>
+        /// Handler for the drag enter event
+        /// </summary>
+        /// <param name="sender">object</param>
+        /// <param name="e">EventArgs</param>
+        void MainForm_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effect = DragDropEffects.Copy;
+        }
+
+        /// <summary>
+        /// Handler for the drag dropevent
+        /// </summary>
+        /// <param name="sender">object</param>
+        /// <param name="e">EventArgs</param>
+        void MainForm_DragDrop(object sender, DragEventArgs e)
+        {
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            setFiles(files);
+        }
+        #endregion
+
+        #region "Run the conversion"
         /// <summary>
         /// Handler for the run button click event
         /// </summary>
@@ -171,7 +183,7 @@ namespace CpConverter
                 destCP = int.Parse(s.Substring(s.LastIndexOf(" ") + 1));
 
                 // check for special options
-                if (chkUnicodeAsDecimal.Checked == true)  specialType = Converter.SpecialTypes.UnicodeAsDecimal;
+                if (chkUnicodeAsDecimal.Checked == true) specialType = Converter.SpecialTypes.UnicodeAsDecimal;
 
                 /*
                 02/05/2007 need to write first two bytes when saving as unicode
@@ -228,7 +240,7 @@ namespace CpConverter
                                         + " of " + _sourceFiles.Length + System.Environment.NewLine);
 
                     //do the conversion
-                    if(Converter.ConvertFile(_sourceFiles[i], destDir, sourceCP, destCP, specialType, chkMeta.Checked, BOM))
+                    if (Converter.ConvertFile(_sourceFiles[i], destDir, sourceCP, destCP, specialType, chkMeta.Checked, BOM))
                     {
                         //success
                         res = char.ConvertFromUtf32(9745);
@@ -262,9 +274,32 @@ namespace CpConverter
                 this.Cursor = Cursors.Default;
             }
         }
-    #endregion
+        #endregion
 
-    #region "Private Methods"
+        #region "Private Methods"
+        /// <summary>
+        /// Set files to process.
+        /// </summary>
+        /// <param name="files">List of filenames to set.</param>
+        private void setFiles(string[] files)
+        {
+            //get the filenames
+            _sourceFiles = files;
+            string filename;
+            lsSource.Items.Clear();
+            foreach (string s in _sourceFiles)
+            {
+                //add the filesnames to the list box
+                //john church 05/10/2008 use directory separator char instead of backslash for linux support
+                filename = s.Substring(s.LastIndexOf(System.IO.Path.DirectorySeparatorChar) + 1);
+                lsSource.Items.Add(filename);
+            }
+            //display the message
+            txtMessages.Text = txtMessages.Text.Insert(0, _sourceFiles.Length + " file(s) selected for conversion" + System.Environment.NewLine);
+            //validate the run button
+            validateForRun();
+        }
+
         /// <summary>
         /// Show some info about the currently selected codepage
         /// </summary>
@@ -330,16 +365,16 @@ namespace CpConverter
             {
                 enc = en.GetEncoding();
                 //build a string containing the name and codepage number
-                s = enc.EncodingName + " - " + enc.CodePage.ToString();
+                s = string.Format("{0} - {1} - {2}",
+                    enc.WebName,
+                    enc.EncodingName,
+                    enc.CodePage);
+                //s = enc.EncodingName + " - " + enc.CodePage.ToString();
                 //add it to the combos
                 cmbSourceEnc.Items.Add(s);
                 cmbDestEnc.Items.Add(s);
             }
-            //sort them alphabetically
-            cmbDestEnc.Sorted = true;
-            cmbSourceEnc.Sorted = true;
         }
-    #endregion
 
         private void lsSource_KeyDown(object sender, KeyEventArgs e)
         {
@@ -348,7 +383,7 @@ namespace CpConverter
             {
                 i = lsSource.SelectedIndex;
                 lsSource.Items.RemoveAt(i);
-                if (i < lsSource.Items.Count )
+                if (i < lsSource.Items.Count)
                 {
                     lsSource.SelectedIndex = i;
                 }
@@ -358,6 +393,6 @@ namespace CpConverter
                 }
             }
         }
-
+        #endregion
     }
 }
