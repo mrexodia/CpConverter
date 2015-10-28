@@ -105,8 +105,43 @@ namespace CpConverter
         /// <param name="e">EventArgs</param>
         private void cmbDestEnc_SelectedIndexChanged(object sender, EventArgs e)
         {
+            string s;
+            int destCP;
+
             validateForRun();
             buildEncodingInfo(cmbDestEnc.SelectedItem.ToString(), txtDestEnc);
+
+            s = cmbDestEnc.SelectedItem.ToString();
+            destCP = int.Parse(s.Substring(s.LastIndexOf(" ") + 1));
+
+            switch (Encoding.GetEncoding(destCP).CodePage)
+            {
+                case 1200 : cmbBOMType.SelectedIndex = 2; break;
+                case 1201 : cmbBOMType.SelectedIndex = 3; break;
+                case 12000: cmbBOMType.SelectedIndex = 4; break;
+                case 12001: cmbBOMType.SelectedIndex = 5; break;
+                case 54936: cmbBOMType.SelectedIndex = 9; break;
+                case 65000: cmbBOMType.SelectedIndex =10; break;
+                case 65001: cmbBOMType.SelectedIndex = 1; break;
+                default:
+                    if (cmbDestEnc.SelectedItem.ToString().IndexOf("EBCDIC") > 0)
+                    {
+                        cmbBOMType.SelectedIndex = 6;
+                    }
+                    else if (cmbDestEnc.SelectedItem.ToString().IndexOf("SCSU") > 0)
+                    {
+                        cmbBOMType.SelectedIndex = 7;
+                    }
+                    else if (cmbDestEnc.SelectedItem.ToString().IndexOf("BOCU") > 0)
+                    {
+                        cmbBOMType.SelectedIndex = 8;
+                    }
+                    else
+                    {
+                        cmbBOMType.SelectedIndex = 0;
+                    }
+                    break;
+            }
         }
     #endregion
         
@@ -118,10 +153,9 @@ namespace CpConverter
         /// <param name="e">EventArgs</param>
         private void btnRun_Click(object sender, EventArgs e)
         {
-            int sourceCP, destCP;
-            string s;
-            string res;
-            int iSuccess = 0;
+            int sourceCP, destCP, iSuccess = 0;
+            string s, res;
+            byte[] BOM = { };
             Converter.SpecialTypes specialType = Converter.SpecialTypes.None;
 
             //03/05/2007 tidy up the UI
@@ -130,15 +164,60 @@ namespace CpConverter
 
             try
             {
-                //get the conversion codepages
+                // get the conversion codepages
                 s = cmbSourceEnc.SelectedItem.ToString();
                 sourceCP = int.Parse(s.Substring(s.LastIndexOf(" ") + 1));
                 s = cmbDestEnc.SelectedItem.ToString();
                 destCP = int.Parse(s.Substring(s.LastIndexOf(" ") + 1));
 
-                //check for special options
-                if (chkUnicodeAsDecimal.Checked == true)
-                    specialType = Converter.SpecialTypes.UnicodeAsDecimal;
+                // check for special options
+                if (chkUnicodeAsDecimal.Checked == true)  specialType = Converter.SpecialTypes.UnicodeAsDecimal;
+
+                /*
+                02/05/2007 need to write first two bytes when saving as unicode
+                11/08/2014 A.D. Yes, this is called Byte Order Mark (BOM). It needs to be written to the beginning of the file/stream
+                                and not only for codepage 1200. BOM could be 2, 3, or 4 bytes long (see wikipedia).
+                                Code that handled CP1200 is moved from Converter.cs to here because it nedds to be expanded and reorganized
+                                for more flexibility. Now, all logic is done here and only byte array "BOM" is passed to ConvertFile().
+                                Also, whether or not to add BOM and its type is up to the user.
+                */
+                // BOM needs to be added?
+                // Codepage can be obtained from here: Encoding.GetEncoding(destCP).CodePage
+                switch (cmbBOMType.SelectedItem.ToString())
+                {
+                    case "none":
+                        break;
+                    case "UTF-8":
+                        BOM = new byte[] { (byte)0xEF, (byte)0xBB, (byte)0xBF };    // 239, 187, 191
+                        break;
+                    case "UTF-16 (LE)":
+                        BOM = new byte[] { (byte)0xFF, (byte)0xFE };                // 255, 254
+                        break;
+                    case "UTF-16 (BE)":
+                        BOM = new byte[] { (byte)0xFE, (byte)0xFF };                // 254, 255
+                        break;
+                    case "UTF-32 (LE)":
+                        BOM = new byte[] { (byte)0xFF, (byte)0xFE, (byte)0x00, (byte)0x00 };    // 255, 254, 0, 0
+                        break;
+                    case "UTF-32 (BE)":
+                        BOM = new byte[] { (byte)0x00, (byte)0x00, (byte)0xFE, (byte)0xFF };    // 0, 0, 254, 255
+                        break;
+                    case "UTF-EBCDIC":
+                        BOM = new byte[] { (byte)0xDD, (byte)0x73, (byte)0x66, (byte)0x73 };    // 221, 115, 102, 115
+                        break;
+                    case "SCSU":
+                        BOM = new byte[] { (byte)0x0E, (byte)0xFE, (byte)0xFF };    // 14, 254, 255
+                        break;
+                    case "BOCU-1":
+                        BOM = new byte[] { (byte)0xFB, (byte)0xEE, (byte)0x28 };    // 251, 238, 40
+                        break;
+                    case "GB-18030":
+                        BOM = new byte[] { (byte)0x84, (byte)0x31, (byte)0x95, (byte)0x33 };    // 132, 49, 149, 51
+                        break;
+                    case "UTF-7":
+                        BOM = new byte[] { (byte)0x2B, (byte)0x2F, (byte)0x76, (byte)0x38 };    // 43, 47, 118, 56  (there are more of UTF-7 BOM's - no expl. on usage)
+                        break;
+                }
 
                 //convert each file
                 for (int i = 0; i < _sourceFiles.Length; i++)
@@ -149,7 +228,7 @@ namespace CpConverter
                                         + " of " + _sourceFiles.Length + System.Environment.NewLine);
 
                     //do the conversion
-                    if(Converter.ConvertFile(_sourceFiles[i], destDir, sourceCP, destCP, specialType, chkMeta.Checked))
+                    if(Converter.ConvertFile(_sourceFiles[i], destDir, sourceCP, destCP, specialType, chkMeta.Checked, BOM))
                     {
                         //success
                         res = char.ConvertFromUtf32(9745);
@@ -261,6 +340,24 @@ namespace CpConverter
             cmbSourceEnc.Sorted = true;
         }
     #endregion
+
+        private void lsSource_KeyDown(object sender, KeyEventArgs e)
+        {
+            int i;
+            if (e.KeyValue == 46)
+            {
+                i = lsSource.SelectedIndex;
+                lsSource.Items.RemoveAt(i);
+                if (i < lsSource.Items.Count )
+                {
+                    lsSource.SelectedIndex = i;
+                }
+                else
+                {
+                    lsSource.SelectedIndex = i - 1;
+                }
+            }
+        }
 
     }
 }

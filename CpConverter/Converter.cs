@@ -47,13 +47,13 @@ namespace CpConverter
         /// <param name="specialType">SpecialTypes</param>
         /// <param name="outputMetaTag">True=output meta tag</param>
         /// <returns></returns>
-        public static bool ConvertFile(string filename, string destDir, int sourceCP,int  destCP, SpecialTypes specialType, bool outputMetaTag)
+        public static bool ConvertFile(string filename, string destDir, int sourceCP, int destCP, SpecialTypes specialType, bool outputMetaTag, byte[] BOM)
         {
             //source file data
             string fileData = "";
             //get the encodings
             Encoding sourceEnc = Encoding.GetEncoding(sourceCP);
-            Encoding destEnc = Encoding.GetEncoding(destCP);
+            Encoding destEnc   = Encoding.GetEncoding(destCP);
             System.IO.FileStream fw = null;
 
             //get the output filename
@@ -72,12 +72,13 @@ namespace CpConverter
                 {
                     System.IO.Directory.CreateDirectory(destDir);
                 }
+
                 //check if we need to output meta tags
                 if (outputMetaTag)
                 {
-                    fileData = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset="
-                                + destEnc.WebName + "\" />";
+                    fileData = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=" + destEnc.WebName + "\" />";
                 }
+
                 //check we've got a backslash at the end of the pathname
                 //john church 05/10/2008 use directory separator char instead of backslash for linux support
                 if (destDir.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()) == false)
@@ -102,11 +103,10 @@ namespace CpConverter
                 byte[] bDest = System.Text.Encoding.Convert(sourceEnc, destEnc, bSource);
                 //write out the file
                 fw = new System.IO.FileStream(destDir + outputFilename, System.IO.FileMode.Create);
-                //02/05/2007 need to write first to bytes when saving as unicode
-                if (destEnc.CodePage == 1200)
+
+                if (BOM.Length > 0)
                 {
-                    fw.WriteByte(0xFF);
-                    fw.WriteByte(0xFE);
+                    fw.Write(BOM, 0, BOM.Length);
                 }
                 fw.Write(bDest, 0, bDest.Length);
                 return true;

@@ -57,6 +57,8 @@ namespace CpConverter
             this.lsSource = new System.Windows.Forms.ListBox();
             this.grpEncodings = new System.Windows.Forms.GroupBox();
             this.grpOptions = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.cmbBOMType = new System.Windows.Forms.ComboBox();
             this.chkUnicodeAsDecimal = new System.Windows.Forms.CheckBox();
             this.chkMeta = new System.Windows.Forms.CheckBox();
             this.txtDestEnc = new System.Windows.Forms.TextBox();
@@ -74,7 +76,7 @@ namespace CpConverter
             // btnExit
             // 
             this.btnExit.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnExit.Location = new System.Drawing.Point(541, 458);
+            this.btnExit.Location = new System.Drawing.Point(632, 535);
             this.btnExit.Name = "btnExit";
             this.btnExit.Size = new System.Drawing.Size(75, 23);
             this.btnExit.TabIndex = 0;
@@ -85,7 +87,7 @@ namespace CpConverter
             // btnRun
             // 
             this.btnRun.Enabled = false;
-            this.btnRun.Location = new System.Drawing.Point(451, 458);
+            this.btnRun.Location = new System.Drawing.Point(551, 535);
             this.btnRun.Name = "btnRun";
             this.btnRun.Size = new System.Drawing.Size(75, 23);
             this.btnRun.TabIndex = 1;
@@ -95,19 +97,19 @@ namespace CpConverter
             // 
             // progFiles
             // 
-            this.progFiles.Location = new System.Drawing.Point(12, 458);
+            this.progFiles.Location = new System.Drawing.Point(12, 535);
             this.progFiles.Name = "progFiles";
-            this.progFiles.Size = new System.Drawing.Size(424, 23);
+            this.progFiles.Size = new System.Drawing.Size(524, 23);
             this.progFiles.TabIndex = 2;
             // 
             // txtMessages
             // 
-            this.txtMessages.Location = new System.Drawing.Point(12, 349);
+            this.txtMessages.Location = new System.Drawing.Point(12, 361);
             this.txtMessages.Multiline = true;
             this.txtMessages.Name = "txtMessages";
             this.txtMessages.ReadOnly = true;
             this.txtMessages.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtMessages.Size = new System.Drawing.Size(604, 93);
+            this.txtMessages.Size = new System.Drawing.Size(695, 168);
             this.txtMessages.TabIndex = 3;
             // 
             // menuMain
@@ -116,7 +118,7 @@ namespace CpConverter
             this.fileToolStripMenuItem});
             this.menuMain.Location = new System.Drawing.Point(0, 0);
             this.menuMain.Name = "menuMain";
-            this.menuMain.Size = new System.Drawing.Size(628, 24);
+            this.menuMain.Size = new System.Drawing.Size(719, 24);
             this.menuMain.TabIndex = 4;
             this.menuMain.Text = "menuStrip1";
             // 
@@ -125,13 +127,13 @@ namespace CpConverter
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(35, 20);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(100, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
@@ -144,7 +146,7 @@ namespace CpConverter
             this.grpSource.Controls.Add(this.lsSource);
             this.grpSource.Location = new System.Drawing.Point(13, 28);
             this.grpSource.Name = "grpSource";
-            this.grpSource.Size = new System.Drawing.Size(229, 307);
+            this.grpSource.Size = new System.Drawing.Size(321, 319);
             this.grpSource.TabIndex = 5;
             this.grpSource.TabStop = false;
             this.grpSource.Text = "Source files";
@@ -154,8 +156,9 @@ namespace CpConverter
             this.lsSource.FormattingEnabled = true;
             this.lsSource.Location = new System.Drawing.Point(6, 19);
             this.lsSource.Name = "lsSource";
-            this.lsSource.Size = new System.Drawing.Size(217, 277);
+            this.lsSource.Size = new System.Drawing.Size(309, 277);
             this.lsSource.TabIndex = 7;
+            this.lsSource.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lsSource_KeyDown);
             // 
             // grpEncodings
             // 
@@ -166,28 +169,60 @@ namespace CpConverter
             this.grpEncodings.Controls.Add(this.cmbDestEnc);
             this.grpEncodings.Controls.Add(this.cmbSourceEnc);
             this.grpEncodings.Controls.Add(this.labSourceEnc);
-            this.grpEncodings.Location = new System.Drawing.Point(248, 28);
+            this.grpEncodings.Location = new System.Drawing.Point(340, 28);
             this.grpEncodings.Name = "grpEncodings";
-            this.grpEncodings.Size = new System.Drawing.Size(368, 307);
+            this.grpEncodings.Size = new System.Drawing.Size(368, 319);
             this.grpEncodings.TabIndex = 6;
             this.grpEncodings.TabStop = false;
             this.grpEncodings.Text = "Encodings";
             // 
             // grpOptions
             // 
+            this.grpOptions.Controls.Add(this.label1);
+            this.grpOptions.Controls.Add(this.cmbBOMType);
             this.grpOptions.Controls.Add(this.chkUnicodeAsDecimal);
             this.grpOptions.Controls.Add(this.chkMeta);
             this.grpOptions.Location = new System.Drawing.Point(10, 216);
             this.grpOptions.Name = "grpOptions";
-            this.grpOptions.Size = new System.Drawing.Size(342, 85);
+            this.grpOptions.Size = new System.Drawing.Size(342, 94);
             this.grpOptions.TabIndex = 7;
             this.grpOptions.TabStop = false;
             this.grpOptions.Text = "Special Options";
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 20);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(139, 13);
+            this.label1.TabIndex = 12;
+            this.label1.Text = "Add Byte Order Mark (BOM)";
+            // 
+            // cmbBOMType
+            // 
+            this.cmbBOMType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbBOMType.FormattingEnabled = true;
+            this.cmbBOMType.Items.AddRange(new object[] {
+            "none",
+            "UTF-8",
+            "UTF-16 (LE)",
+            "UTF-16 (BE)",
+            "UTF-32 (LE)",
+            "UTF-32 (BE)",
+            "UTF-EBCDIC",
+            "SCSU",
+            "BOCU-1",
+            "GB-18030",
+            "UTF-7"});
+            this.cmbBOMType.Location = new System.Drawing.Point(160, 17);
+            this.cmbBOMType.Name = "cmbBOMType";
+            this.cmbBOMType.Size = new System.Drawing.Size(121, 21);
+            this.cmbBOMType.TabIndex = 11;
+            // 
             // chkUnicodeAsDecimal
             // 
             this.chkUnicodeAsDecimal.AutoSize = true;
-            this.chkUnicodeAsDecimal.Location = new System.Drawing.Point(7, 43);
+            this.chkUnicodeAsDecimal.Location = new System.Drawing.Point(9, 66);
             this.chkUnicodeAsDecimal.Name = "chkUnicodeAsDecimal";
             this.chkUnicodeAsDecimal.Size = new System.Drawing.Size(219, 17);
             this.chkUnicodeAsDecimal.TabIndex = 8;
@@ -197,7 +232,7 @@ namespace CpConverter
             // chkMeta
             // 
             this.chkMeta.AutoSize = true;
-            this.chkMeta.Location = new System.Drawing.Point(6, 19);
+            this.chkMeta.Location = new System.Drawing.Point(9, 43);
             this.chkMeta.Name = "chkMeta";
             this.chkMeta.Size = new System.Drawing.Size(106, 17);
             this.chkMeta.TabIndex = 7;
@@ -267,7 +302,7 @@ namespace CpConverter
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnExit;
-            this.ClientSize = new System.Drawing.Size(628, 493);
+            this.ClientSize = new System.Drawing.Size(719, 570);
             this.Controls.Add(this.grpEncodings);
             this.Controls.Add(this.grpSource);
             this.Controls.Add(this.txtMessages);
@@ -313,5 +348,7 @@ namespace CpConverter
         private System.Windows.Forms.GroupBox grpOptions;
         private System.Windows.Forms.CheckBox chkMeta;
         private System.Windows.Forms.CheckBox chkUnicodeAsDecimal;
+        private System.Windows.Forms.ComboBox cmbBOMType;
+        private System.Windows.Forms.Label label1;
     }
 }
