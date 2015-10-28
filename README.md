@@ -6,4 +6,4 @@ Added features:
 - Sort by code page number, not alphabet
 - BOM support (by geniesys)
 
-Forked from [here](https://sourceforge.net/projects/cp-converter) and [here](www.geniesys.net/tools/CpConverter_v0.1.6.zip).
+Forked from [here](https://sourceforge.net/projects/cp-converter) and [here](http://www.geniesys.net/tools/CpConverter_v0.1.6.zip).
